@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>日記を書く</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ダークモード */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .write-card,
+    body.dark .mood-section,
+    body.dark .tag-section {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .date-info,
+    body.dark .label,
+    body.dark .mood-hint,
+    body.dark .tag-hint {
+      color: #b0b0b0;
+    }
+
+    body.dark .diary-textarea {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .mood-btn {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+    }
+
+    body.dark .mood-btn.active {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-color: #2c3e50;
+    }
+
+    body.dark .tag-input {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .save-btn {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .date-info {
+      text-align: center;
+      color: #5f6368;
+      font-size: 16px;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+      color: #202124;
+      font-size: 16px;
+    }
+
+    .mood-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .mood-btn {
+      background: white;
+      border: 3px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 20px 8px;
+      font-size: 32px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mood-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mood-btn.selected {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 100%);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .mood-label {
+      font-size: 11px;
+      color: #5f6368;
+      font-weight: 500;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 250px;
+      padding: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      background: white;
+      line-height: 1.6;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 14px;
+      color: #5f6368;
+      margin-top: 8px;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #5f6368;
+      margin-top: 6px;
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .save-btn:active {
+      transform: scale(0.98);
+    }
+
+    .save-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .loading {
+      text-align: center;
+      color: #5f6368;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .success-message {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4caf50;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      text-align: center;
+      display: none;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      min-width: 200px;
+      max-width: 90%;
+    }
+
+    .error-message {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f44336;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      text-align: center;
+      display: none;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      min-width: 200px;
+      max-width: 90%;
+    }
+
+    /* 日付ナビゲーション */
+    .date-navigation {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .date-nav-btn {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .date-nav-btn:active {
+      transform: scale(0.95);
+      background: #f5f5f5;
+    }
+
+    body.dark .date-nav-btn {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .date-nav-btn:active {
+      background: #4a4a4a;
+    }
+
+    #targetDate {
+      flex: 1;
+      min-width: 0;
+    }
+
+    input[type="date"] {
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="date"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    body.dark input[type="date"] {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    /* 過去の今日セクション */
+    #pastEntriesSection h2 {
+      transition: color 0.3s;
+    }
+
+    body.dark #pastEntriesSection h2 {
+      color: #9ca3db;
+    }
+
+    .past-entry {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+    }
+
+    body.dark .past-entry {
+      background: #2d2d2d;
+      border-color: #4a4a4a;
+    }
+
+    .past-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .past-entry-year {
+      font-size: 14px;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    body.dark .past-entry-year {
+      color: #9ca3db;
+    }
+
+    .past-entry-mood {
+      font-size: 24px;
+    }
+
+    .past-entry-content {
+      color: #202124;
+      line-height: 1.6;
+      font-size: 15px;
+      white-space: pre-wrap;
+    }
+
+    body.dark .past-entry-content {
+      color: #e0e0e0;
+    }
+
+    .past-entry-tags {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .past-entry-tag {
+      background: #e8f0fe;
+      color: #667eea;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    body.dark .past-entry-tag {
+      background: #3a3a3a;
+      color: #9ca3db;
+    }
+
+    .no-past-entries {
+      text-align: center;
+      color: #5f6368;
+      padding: 32px;
+      font-size: 14px;
+    }
+
+    body.dark .no-past-entries {
+      color: #b0b0b0;
+    }
+
+    /* 過去の今日 - 編集ボタン */
+    .past-entry-edit-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .past-entry-edit-btn:active {
+      transform: scale(0.95);
+    }
+
+    body.dark .past-entry-edit-btn {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a4391 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>日記を書く</h1>
+  </div>
+
+  <div class="container">
+    <div class="form-group">
+      <label>日付</label>
+      <div class="date-navigation">
+        <button type="button" class="date-nav-btn" onclick="goToPreviousDay()">◀ 前の日</button>
+        <input type="date" id="targetDate" value="<?= dateValue ?>" onchange="loadDateData()">
+        <button type="button" class="date-nav-btn" onclick="goToNextDay()">次の日 ▶</button>
+      </div>
+      <div class="hint">過去や未来の日付も選択できます</div>
+    </div>
+
+    <div class="form-group">
+      <label>気分</label>
+      <div class="mood-buttons">
+        <button type="button" class="mood-btn" data-mood="😄 最高" onclick="selectMood(this)">
+          😄
+          <span class="mood-label">最高</span>
+        </button>
+        <button type="button" class="mood-btn" data-mood="🙂 良い" onclick="selectMood(this)">
+          🙂
+          <span class="mood-label">良い</span>
+        </button>
+        <button type="button" class="mood-btn" data-mood="😐 普通" onclick="selectMood(this)">
+          😐
+          <span class="mood-label">普通</span>
+        </button>
+        <button type="button" class="mood-btn" data-mood="😔 微妙" onclick="selectMood(this)">
+          😔
+          <span class="mood-label">微妙</span>
+        </button>
+        <button type="button" class="mood-btn" data-mood="😢 悲しい" onclick="selectMood(this)">
+          😢
+          <span class="mood-label">悲しい</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>日記の内容</label>
+      <textarea id="content" placeholder="今日あったこと、感じたことを自由に..."><?= existingContent ?></textarea>
+      <div class="char-count">
+        <span id="charCount">0</span> 文字
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>タグ（任意）</label>
+      <input type="text" id="tags" placeholder="例: 仕事, 旅行, 家族" value="<?= existingTags ?>">
+      <div class="hint">カンマ区切りで複数入力可能</div>
+    </div>
+
+    <button type="button" class="save-btn" onclick="saveDiary()" id="saveBtn">💾 保存する</button>
+    <div class="loading" id="loading">保存中...</div>
+    <div class="success-message" id="successMessage">✅ 保存しました！</div>
+    <div class="error-message" id="errorMessage"></div>
+
+    <!-- 過去の今日セクション -->
+    <div id="pastEntriesSection" style="margin-top: 40px; display: none;">
+      <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #667eea;">📅 過去の今日</h2>
+      <div id="pastEntriesContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // デバッグ: ページ読み込み開始
+    console.log('=== Write.html ページ読み込み開始 ===');
+    console.log('テンプレート変数確認:');
+    console.log('  dateStr: <?= dateStr ?>');
+    console.log('  dateValue: <?= dateValue ?>');
+    console.log('  existingContent length:', '<?= existingContent ?>'.length);
+    console.log('  existingMood:', '<?= existingMood ?>');
+    console.log('  existingTags:', '<?= existingTags ?>');
+
+    // グローバルエラーハンドラー
+    window.addEventListener('error', function(e) {
+      console.error('❌ グローバルエラー:', e.error);
+      alert('エラーが発生しました: ' + e.message + '\n\nコンソールを確認してください（F12キー）');
+    });
+
+    // ページ遷移
+    function navigateToHome() {
+      console.log('[NAV] Navigate to home');
+
+      const isInIframe = window.self !== window.top;
+      console.log('iframe内:', isInIframe);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      console.log('遷移先URL:', newUrl);
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    // テーマ適用
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        console.log('テーマ適用:', theme);
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {
+        console.error('テーマの読み込みに失敗:', e);
+      }
+    }
+    applyTheme();
+
+    let selectedMood = '<?= existingMood ?>';
+    const textarea = document.getElementById('content');
+    const charCount = document.getElementById('charCount');
+
+    console.log('DOM要素確認:');
+    console.log('  textarea:', textarea);
+    console.log('  charCount:', charCount);
+
+    // 初期化処理
+    window.addEventListener('load', function() {
+      console.log('=== load イベント発火 ===');
+      // 既存の気分を選択状態にする
+      if (selectedMood) {
+        const moodBtns = document.querySelectorAll('.mood-btn');
+        moodBtns.forEach(btn => {
+          if (btn.getAttribute('data-mood') === selectedMood) {
+            btn.classList.add('selected');
+          }
+        });
+      }
+
+      updateCharCount();
+
+      // 過去の今日を取得
+      loadPastEntries();
+    });
+
+    function selectMood(btn) {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedMood = btn.getAttribute('data-mood');
+    }
+
+    function updateCharCount() {
+      charCount.textContent = textarea.value.length;
+    }
+
+    textarea.addEventListener('input', updateCharCount);
+
+    function saveDiary() {
+      const content = document.getElementById('content').value;
+      const tags = document.getElementById('tags').value;
+      const targetDate = document.getElementById('targetDate').value;
+
+      if (!content.trim()) {
+        alert('日記の内容を入力してください。');
+        return;
+      }
+
+      document.getElementById('saveBtn').disabled = true;
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('successMessage').style.display = 'none';
+      document.getElementById('errorMessage').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler((result) => {
+          document.getElementById('loading').style.display = 'none';
+
+          if (result.success) {
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('saveBtn').disabled = false;
+
+            // 3秒後にメッセージを自動で消す
+            setTimeout(() => {
+              document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+          } else {
+            document.getElementById('errorMessage').textContent = result.message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('saveBtn').disabled = false;
+          }
+        })
+        .withFailureHandler((error) => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('errorMessage').textContent = 'エラーが発生しました: ' + error;
+          document.getElementById('errorMessage').style.display = 'block';
+          document.getElementById('saveBtn').disabled = false;
+        })
+        .saveDiary(content, selectedMood, tags, targetDate);
+    }
+
+    // 日付変更時にデータを読み込む
+    function loadDateData() {
+      const targetDate = document.getElementById('targetDate').value;
+      console.log('日付変更:', targetDate);
+      navigateToDate(targetDate);
+    }
+
+    // 前の日に移動
+    function goToPreviousDay() {
+      const currentDate = new Date(document.getElementById('targetDate').value);
+      currentDate.setDate(currentDate.getDate() - 1);
+      const newDate = formatDate(currentDate);
+      navigateToDate(newDate);
+    }
+
+    // 次の日に移動
+    function goToNextDay() {
+      const currentDate = new Date(document.getElementById('targetDate').value);
+      currentDate.setDate(currentDate.getDate() + 1);
+      const newDate = formatDate(currentDate);
+      navigateToDate(newDate);
+    }
+
+    // 日付をYYYY-MM-DD形式にフォーマット
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // 指定日付に遷移
+    function navigateToDate(targetDate) {
+      console.log('日付遷移:', targetDate);
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=write&date=' + targetDate;
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    // 過去の今日を取得
+    function loadPastEntries() {
+      const targetDate = document.getElementById('targetDate').value;
+      console.log('=== 過去の今日を取得開始 ===');
+      console.log('  対象日付:', targetDate);
+
+      google.script.run
+        .withSuccessHandler(function(entries) {
+          console.log('[OK] Past entries fetch success:', entries);
+          console.log('  件数:', entries ? entries.length : 0);
+          displayPastEntries(entries);
+        })
+        .withFailureHandler((error) => {
+          console.error('❌ 過去の今日取得エラー:', error);
+          // エラーでも非表示にするだけ（エラー表示はしない）
+          document.getElementById('pastEntriesSection').style.display = 'none';
+        })
+        .getPastEntriesForDate(targetDate);
+    }
+
+    // 過去の今日を表示
+    function displayPastEntries(entries) {
+      console.log('過去の今日受信:', entries);
+      const section = document.getElementById('pastEntriesSection');
+      const content = document.getElementById('pastEntriesContent');
+
+      if (!entries || entries.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      let html = '';
+      entries.forEach((entry) => {
+        const moodEmoji = entry.mood ? entry.mood.split(' ')[0] : '';
+
+        let tagsHtml = '';
+        if (entry.tags) {
+          const tagList = entry.tags.split(',').map(t => t.trim()).filter(t => t);
+          if (tagList.length > 0) {
+            tagsHtml = '<div class="past-entry-tags">' +
+              tagList.map(tag => `<span class="past-entry-tag">${escapeHtml(tag)}</span>`).join('') +
+              '</div>';
+          }
+        }
+
+        // 編集用の日付を生成（現在表示中の月日 + その年）
+        const currentDate = document.getElementById('targetDate').value;
+        const parts = currentDate.split('-');
+        const year = entry.year;
+        const month = parts[1];
+        const day = parts[2];
+        const dateValue = `${year}-${month}-${day}`;
+
+        html += `
+          <div class="past-entry">
+            <div class="past-entry-header">
+              <div class="past-entry-year">${escapeHtml(String(entry.year))}年 (${escapeHtml(entry.dayOfWeek)})</div>
+              ${moodEmoji ? `<div class="past-entry-mood">${moodEmoji}</div>` : ''}
+            </div>
+            <div class="past-entry-content">${escapeHtml(entry.content)}</div>
+            ${tagsHtml}
+            <button type="button" class="past-entry-edit-btn" onclick="editPastEntry('${dateValue}')">✏️ 編集</button>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+    }
+
+    // HTMLエスケープ
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 過去の日記を編集
+    function editPastEntry(dateValue) {
+      console.log('過去の日記を編集:', dateValue);
+      navigateToDate(dateValue);
+    }
+  </script>
+</body>
+</html>

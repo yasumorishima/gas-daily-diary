@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#667eea">
+  <title>連用日記</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .header {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark .today-card,
+    body.dark .menu-item {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .today-date {
+      color: #b0b0b0;
+    }
+
+    body.dark .menu-label {
+      color: #e0e0e0;
+    }
+
+    body.dark .install-prompt {
+      background: rgba(45, 45, 45, 0.95);
+      color: #e0e0e0;
+    }
+
+    body.dark .install-prompt p {
+      color: #e0e0e0;
+    }
+
+    body.dark .footer {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 24px 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+
+    .theme-toggle-btn {
+      position: absolute;
+      top: 24px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      flex: 1;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ========================================
+       今日のカード
+       ======================================== */
+    .today-card {
+      background: white;
+      border-radius: 20px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .today-date {
+      text-align: center;
+      font-size: 18px;
+      color: #5f6368;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    /* 日付選択ナビゲーション */
+    .date-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .date-nav-btn-home {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      color: #5f6368;
+    }
+
+    .date-nav-btn-home:active {
+      transform: scale(0.95);
+      background: #f5f5f5;
+    }
+
+    body.dark .date-nav-btn-home {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .date-nav-btn-home:active {
+      background: #4a4a4a;
+    }
+
+    .date-input-home {
+      flex: 1;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .date-input-home:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    body.dark .date-input-home {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    .write-btn {
+      display: block;
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .write-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    /* ========================================
+       メニューグリッド
+       ======================================== */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .menu-item {
+      background: white;
+      border-radius: 18px;
+      padding: 28px 16px;
+      text-align: center;
+      text-decoration: none;
+      color: #202124;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-item:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-icon {
+      font-size: 52px;
+      line-height: 1;
+    }
+
+    .menu-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #202124;
+    }
+
+    /* ========================================
+       インストールプロンプト
+       ======================================== */
+    .install-prompt {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      display: none;
+      animation: slideDown 0.4s ease;
+    }
+
+    .install-prompt p {
+      margin-bottom: 14px;
+      color: #202124;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .install-btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 8px;
+      transition: background 0.2s;
+    }
+
+    .install-btn:active {
+      background: #1557b0;
+    }
+
+    .close-btn {
+      background: #f0f0f0;
+      color: #5f6368;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .close-btn:active {
+      background: #e0e0e0;
+    }
+
+    /* ========================================
+       フッター
+       ======================================== */
+    .footer {
+      padding: 24px 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn">☾</button>
+    <h1>📖 連用日記</h1>
+    <p>毎日の記録を残そう</p>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <!-- インストールプロンプト -->
+    <div class="install-prompt" id="installPrompt">
+      <p>📱 ホーム画面に追加してアプリのように使えます</p>
+      <button type="button" class="install-btn" onclick="installApp()">追加する</button>
+      <button type="button" class="close-btn" onclick="closeInstallPrompt()">後で</button>
+    </div>
+
+    <!-- 今日のカード -->
+    <div class="today-card">
+      <div class="today-date" id="todayDate">読み込み中...</div>
+
+      <!-- 日付選択 -->
+      <div class="date-selector">
+        <button type="button" class="date-nav-btn-home" onclick="goToPreviousDayHome()">◀</button>
+        <input type="date" id="selectedDate" class="date-input-home" onchange="updateSelectedDate()">
+        <button type="button" class="date-nav-btn-home" onclick="goToNextDayHome()">▶</button>
+      </div>
+
+      <button type="button" class="write-btn" onclick="writeSelectedDate()" id="writeBtn">
+        ✍️ 日記を書く
+      </button>
+    </div>
+
+    <!-- メニューグリッド -->
+    <div class="menu-grid">
+      <div class="menu-item" onclick="navigateTo('past')">
+        <div class="menu-icon">📅</div>
+        <div class="menu-label">過去の今日</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('random')">
+        <div class="menu-icon">🎲</div>
+        <div class="menu-label">ランダム</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('search')">
+        <div class="menu-icon">🔍</div>
+        <div class="menu-label">検索</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('stats')">
+        <div class="menu-icon">📊</div>
+        <div class="menu-label">統計</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('calendar')">
+        <div class="menu-icon">📆</div>
+        <div class="menu-label">カレンダー</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('export')">
+        <div class="menu-icon">📦</div>
+        <div class="menu-label">エクスポート</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('settings')">
+        <div class="menu-icon">⚙️</div>
+        <div class="menu-label">設定</div>
+      </div>
+
+      <div class="menu-item" onclick="navigateTo('tags')">
+        <div class="menu-icon">🏷️</div>
+        <div class="menu-label">タグ別表示</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
+       フッター
+       ======================================== -->
+  <div class="footer">
+    © 2024 連用日記
+  </div>
+
+  <script>
+    // デバッグ: ページ読み込み開始
+    console.log('=== Home.html ページ読み込み開始 ===');
+    console.log('現在のURL:', window.location.href);
+
+    // グローバルエラーハンドラー
+    window.addEventListener('error', function(e) {
+      console.error('❌ グローバルエラー:', e.error);
+      alert('エラーが発生しました: ' + e.message + '\n\nコンソールを確認してください（F12キー）');
+    });
+
+    /* ========================================
+       ページ遷移
+       ======================================== */
+    function navigateTo(page) {
+      console.log('[NAV] Navigate to page:', page);
+
+      // iframe内かどうかチェック
+      const isInIframe = window.self !== window.top;
+      console.log('iframe内:', isInIframe);
+
+      // 本番URLを直接構築
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=' + page;
+
+      console.log('遷移先URL:', newUrl);
+
+      // iframe内の場合はトップウィンドウを変更
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    /* ========================================
+       テーマ適用
+       ======================================== */
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        console.log('テーマ適用:', theme);
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+          updateThemeIcon('dark');
+        } else {
+          document.body.classList.remove('dark');
+          updateThemeIcon('default');
+        }
+      } catch (e) {
+        console.error('テーマの読み込みに失敗:', e);
+      }
+    }
+
+    // テーマアイコンを更新
+    function updateThemeIcon(theme) {
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        // ダークモードなら太陽、ライトモードなら月
+        btn.textContent = theme === 'dark' ? '☀️' : '☾';
+      }
+    }
+
+    // テーマを切り替え
+    function toggleTheme() {
+      try {
+        const currentTheme = localStorage.getItem('theme') || 'default';
+        const newTheme = currentTheme === 'dark' ? 'default' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme();
+      } catch (e) {
+        console.error('テーマの切り替えに失敗:', e);
+      }
+    }
+
+    // ページ読み込み時にテーマを適用
+    applyTheme();
+
+    /* ========================================
+       日付表示の更新
+       ======================================== */
+    function updateDate() {
+      try {
+        const today = new Date();
+        const options = {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        };
+        const dateStr = today.toLocaleDateString('ja-JP', options);
+        document.getElementById('todayDate').textContent = dateStr;
+      } catch (e) {
+        console.error('日付の更新に失敗:', e);
+        document.getElementById('todayDate').textContent = '日付の取得に失敗しました';
+      }
+    }
+
+    // ページ読み込み時に日付を更新
+    updateDate();
+
+    /* ========================================
+       日付選択機能
+       ======================================== */
+    // 日付選択フィールドの初期化
+    function initDateSelector() {
+      const today = new Date();
+      const dateInput = document.getElementById('selectedDate');
+      if (dateInput) {
+        dateInput.value = formatDateValue(today);
+      }
+    }
+
+    // 日付をYYYY-MM-DD形式にフォーマット
+    function formatDateValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // 前の日に移動
+    function goToPreviousDayHome() {
+      const dateInput = document.getElementById('selectedDate');
+      const currentDate = new Date(dateInput.value);
+      currentDate.setDate(currentDate.getDate() - 1);
+      dateInput.value = formatDateValue(currentDate);
+    }
+
+    // 次の日に移動
+    function goToNextDayHome() {
+      const dateInput = document.getElementById('selectedDate');
+      const currentDate = new Date(dateInput.value);
+      currentDate.setDate(currentDate.getDate() + 1);
+      dateInput.value = formatDateValue(currentDate);
+    }
+
+    // 日付が変更された時の処理（今は特に何もしない）
+    function updateSelectedDate() {
+      // 将来的にここで何か処理を追加できます
+    }
+
+    // 選択された日付の日記を書く
+    function writeSelectedDate() {
+      const dateInput = document.getElementById('selectedDate');
+      const selectedDate = dateInput.value;
+
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=write&date=' + selectedDate;
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    // ページ読み込み時に日付選択を初期化
+    window.addEventListener('load', function() {
+      initDateSelector();
+    });
+
+    /* ========================================
+       PWA インストールプロンプト
+       ======================================== */
+    let deferredPrompt;
+
+    // インストールプロンプトをキャッチ
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPrompt').style.display = 'block';
+    });
+
+    // インストールボタンのクリック処理
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('PWAインストール: 承諾');
+          } else {
+            console.log('PWAインストール: 拒否');
+          }
+          deferredPrompt = null;
+          closeInstallPrompt();
+        });
+      } else {
+        // iOS Safari用の説明を表示
+        alert('ホーム画面に追加するには:\n\n1. 共有ボタン（↑）をタップ\n2. 「ホーム画面に追加」を選択\n3. 「追加」をタップ');
+      }
+    }
+
+    // プロンプトを閉じる
+    function closeInstallPrompt() {
+      document.getElementById('installPrompt').style.display = 'none';
+      // ローカルストレージに閉じたことを記録（再表示を防ぐ）
+      try {
+        localStorage.setItem('installPromptClosed', 'true');
+      } catch (e) {
+        // ローカルストレージが使えない場合は無視
+        console.log('ローカルストレージが使用できません');
+      }
+    }
+
+    // 既に閉じている場合は表示しない
+    window.addEventListener('load', function() {
+      try {
+        if (localStorage.getItem('installPromptClosed') === 'true') {
+          document.getElementById('installPrompt').style.display = 'none';
+        }
+      } catch (e) {
+        // ローカルストレージが使えない場合は無視
+        console.log('ローカルストレージが使用できません');
+      }
+    });
+
+    // インストール完了後はプロンプトを非表示
+    window.addEventListener('appinstalled', () => {
+      console.log('PWAがインストールされました');
+      closeInstallPrompt();
+    });
+  </script>
+</body>
+</html>

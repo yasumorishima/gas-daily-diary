@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>過去の今日</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .entry-card {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .entry-header {
+      border-bottom-color: #3a3a3a;
+    }
+
+    body.dark .entry-date {
+      color: #8b9dc3;
+    }
+
+    body.dark .entry-content {
+      color: #e0e0e0;
+    }
+
+    body.dark .entry-tag {
+      background: #2c3e50;
+      color: #8b9dc3;
+    }
+
+    body.dark .loading,
+    body.dark .empty {
+      color: #b0b0b0;
+    }
+
+    body.dark .error {
+      background: #3a2222;
+      color: #ff6b6b;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       サブタイトル
+       ======================================== */
+    .subtitle {
+      text-align: center;
+      color: #5f6368;
+      font-size: 16px;
+      margin-bottom: 24px;
+      font-weight: 500;
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* ========================================
+       日記エントリー
+       ======================================== */
+    .entry {
+      margin: 16px 0;
+      padding: 24px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .entry:nth-child(1) { animation-delay: 0.1s; }
+    .entry:nth-child(2) { animation-delay: 0.15s; }
+    .entry:nth-child(3) { animation-delay: 0.2s; }
+    .entry:nth-child(4) { animation-delay: 0.25s; }
+    .entry:nth-child(5) { animation-delay: 0.3s; }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .year {
+      font-size: 18px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .mood {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .content {
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #202124;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    /* ========================================
+       タグ
+       ======================================== */
+    .tags {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 100%);
+      padding: 6px 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       編集ボタン
+       ======================================== */
+    .edit-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .edit-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .no-data {
+      text-align: center;
+      color: #5f6368;
+      padding: 80px 20px;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5f6368;
+      font-size: 16px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .error {
+      text-align: center;
+      color: #d93025;
+      padding: 60px 20px;
+      font-size: 16px;
+      background: #fce8e6;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- デバッグ: HTML読み込み確認 -->
+  <script>
+    console.log('=== PAST.HTML BODY START ===');
+    console.log('Time:', new Date().toISOString());
+  </script>
+
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>過去の今日</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <div id="content" class="loading">読み込み中</div>
+  </div>
+
+  <!-- デバッグ: メインスクリプト開始前 -->
+  <script>
+    console.log('=== MAIN SCRIPT TAG REACHED ===');
+  </script>
+
+  <script>
+    console.log('[DEBUG] Past.html script start');
+
+    /* ========================================
+       グローバルエラーハンドラー
+       ======================================== */
+    window.addEventListener('error', function(e) {
+      console.error('[ERROR] Global error:', {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        error: e.error
+      });
+      alert('Error occurred:\n' + e.message + '\n\nLine: ' + e.lineno + ', Col: ' + e.colno);
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('[ERROR] Unhandled promise rejection:', e.reason);
+    });
+
+    /* ========================================
+       テーマ適用
+       ======================================== */
+
+    // ページ遷移
+    function navigateToHome() {
+      console.log('[NAV] Navigate to home start');
+
+      const isInIframe = window.self !== window.top;
+      console.log('  iframe:', isInIframe);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      console.log('  Target URL:', newUrl);
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+
+    function applyTheme() {
+      console.log('[THEME] Apply theme start');
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        console.log('  Current theme:', theme);
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+          console.log('  [OK] Dark mode applied');
+        }
+      } catch (e) {
+        console.error('  [ERROR] Theme load failed:', e);
+      }
+    }
+    applyTheme();
+    console.log('[OK] Theme applied');
+
+    /* ========================================
+       データ取得と表示
+       ======================================== */
+
+    // データ取得開始
+    console.log('[DATA] Page load start');
+    console.log('  google.script.run available:', typeof google !== 'undefined' && typeof google.script !== 'undefined');
+
+    try {
+      console.log('[DATA] Calling getPastToday()...');
+      google.script.run
+        .withSuccessHandler(function(entries) {
+          console.log('[OK] Data fetch success (SUCCESS HANDLER)');
+          console.log('  typeof entries:', typeof entries);
+          console.log('  entries === null:', entries === null);
+          console.log('  entries === undefined:', entries === undefined);
+          console.log('  Array.isArray(entries):', Array.isArray(entries));
+          console.log('  entries content:', entries);
+          console.log('  count:', entries ? entries.length : 0);
+
+          if (entries && entries.length > 0) {
+            console.log('  first entry:', entries[0]);
+            console.log('  first entry keys:', Object.keys(entries[0]));
+          }
+
+          displayEntries(entries);
+        })
+        .withFailureHandler(function(error) {
+          console.error('[ERROR] Data fetch failed (FAILURE HANDLER)');
+          console.error('  error:', error);
+          console.error('  typeof error:', typeof error);
+          console.error('  error.message:', error.message);
+          displayError(error);
+        })
+        .getPastToday();
+      console.log('[DATA] getPastToday() called (waiting response)');
+    } catch (e) {
+      console.error('[ERROR] Data fetch exception (CATCH)');
+      console.error('  exception:', e);
+      console.error('  e.name:', e.name);
+      console.error('  e.message:', e.message);
+      console.error('  e.stack:', e.stack);
+      displayError('Data fetch failed: ' + e.message);
+    }
+
+    /**
+     * エントリーを表示
+     * @param {Array} entries - 日記エントリーの配列
+     */
+    function displayEntries(entries) {
+      console.log('===========================================');
+      console.log('[DISPLAY] displayEntries function start');
+      console.log('===========================================');
+      console.log('  argument entries:', entries);
+      console.log('  typeof entries:', typeof entries);
+      console.log('  entries === null:', entries === null);
+      console.log('  entries === undefined:', entries === undefined);
+      console.log('  Array.isArray(entries):', Array.isArray(entries));
+
+      if (entries !== null && entries !== undefined) {
+        console.log('  entries.length:', entries.length);
+        console.log('  entries.constructor.name:', entries.constructor.name);
+        console.log('  JSON.stringify(entries, null, 2):');
+        try {
+          console.log(JSON.stringify(entries, null, 2));
+        } catch (e) {
+          console.error('  JSON.stringify failed:', e);
+        }
+      } else {
+        console.log('  entries is null or undefined');
+      }
+
+      const content = document.getElementById('content');
+      console.log('  content element:', content);
+      console.log('  content exists:', !!content);
+
+      const today = new Date();
+      const monthDay = (today.getMonth() + 1) + 'month' + today.getDate() + 'day';
+      console.log('  today monthDay:', monthDay);
+
+      // データなしの場合
+      if (!entries || entries.length === 0) {
+        console.log('  [WARN] No data - show no-data message');
+        content.className = 'no-data';
+        content.innerHTML = `
+          ${monthDay} no records yet<br>
+          <br>
+          Let's start from today!
+        `;
+        return;
+      }
+
+      console.log('  [OK] Data exists:', entries.length + ' items');
+
+      // サブタイトルとエントリーを表示
+      let html = `<div class="subtitle">${monthDay} records (${entries.length} items)</div>`;
+
+      console.log('  [PROCESS] Entry processing start');
+      entries.forEach((entry, index) => {
+        console.log(`  [${index}] Entry process:`, entry);
+
+        // 気分の絵文字を取得
+        const moodEmoji = entry.mood ? entry.mood.split(' ')[0] : '';
+        console.log(`  [${index}] Mood:`, moodEmoji);
+
+        // タグを処理
+        let tagsHtml = '';
+        if (entry.tags) {
+          const tagList = entry.tags.split(',').map(t => t.trim()).filter(t => t);
+          console.log(`  [${index}] Tags:`, tagList);
+          if (tagList.length > 0) {
+            tagsHtml = '<div class="tags">' +
+              tagList.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') +
+              '</div>';
+          }
+        }
+
+        // 編集用の日付を生成（今日の月日 + その年）
+        const year = entry.year;
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateValue = `${year}-${month}-${day}`;
+        console.log(`  [${index}] Edit date:`, dateValue);
+
+        // エントリーのHTML生成
+        html += `
+          <div class="entry" style="animation-delay: ${0.1 + index * 0.05}s">
+            <div class="entry-header">
+              <div class="year">${escapeHtml(String(entry.year))} year (${escapeHtml(entry.dayOfWeek)})</div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                ${moodEmoji ? `<div class="mood">${moodEmoji}</div>` : ''}
+                <button type="button" class="edit-btn" onclick="editEntry('${dateValue}')">Edit</button>
+              </div>
+            </div>
+            <div class="content">${escapeHtml(entry.content)}</div>
+            ${tagsHtml}
+          </div>
+        `;
+      });
+
+      console.log('  [OK] HTML generation complete');
+      console.log('  HTML length:', html.length, 'chars');
+
+      content.className = '';
+      content.innerHTML = html;
+      console.log('[OK] displayEntries complete');
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      const content = document.getElementById('content');
+      content.className = 'error';
+      content.innerHTML = `
+        [ERROR] An error occurred<br>
+        <br>
+        ${escapeHtml(String(error))}<br>
+        <br>
+        Please reload the page
+      `;
+      console.error('[ERROR] Display error:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    /**
+     * 編集ボタンクリック時
+     * @param {string} dateValue - 日付 (YYYY-MM-DD)
+     */
+    function editEntry(dateValue) {
+      console.log('[EDIT] Edit start:', dateValue);
+
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=write&date=' + dateValue;
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+  </script>
+</body>
+</html>

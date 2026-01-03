@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>設定</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .section {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .section-title {
+      color: #e0e0e0;
+    }
+
+    body.dark .setting-label {
+      color: #e0e0e0;
+    }
+
+    body.dark .setting-description {
+      color: #b0b0b0;
+    }
+
+    body.dark .theme-option {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .theme-option.active {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      border-color: #2c3e50;
+    }
+
+    body.dark .theme-name {
+      color: #e0e0e0;
+    }
+
+    body.dark select {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .slider {
+      background-color: #4a4a4a;
+    }
+
+    body.dark .info-card {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: #e0e0e0;
+    }
+
+    body.dark .info-card p {
+      color: #e0e0e0;
+    }
+
+    body.dark .danger-btn {
+      background: #c62828;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       セクション
+       ======================================== */
+    .section {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.15s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.25s; }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #202124;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      font-size: 24px;
+    }
+
+    /* ========================================
+       設定項目
+       ======================================== */
+    .setting-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .setting-item:first-child {
+      padding-top: 0;
+    }
+
+    .setting-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #202124;
+      margin-bottom: 8px;
+    }
+
+    .setting-description {
+      font-size: 13px;
+      color: #5f6368;
+      margin-bottom: 12px;
+    }
+
+    /* ========================================
+       テーマ選択
+       ======================================== */
+    .theme-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .theme-option {
+      padding: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .theme-option:active {
+      transform: scale(0.97);
+    }
+
+    .theme-option.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 100%);
+    }
+
+    .theme-preview {
+      height: 60px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .theme-preview.default {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .theme-preview.dark {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    .theme-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #202124;
+    }
+
+    /* ========================================
+       スイッチ
+       ======================================== */
+    .switch-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* ========================================
+       セレクトボックス
+       ======================================== */
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* ========================================
+       ボタン
+       ======================================== */
+    .danger-btn {
+      width: 100%;
+      padding: 16px;
+      background: #d93025;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+
+    .danger-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* ========================================
+       情報カード
+       ======================================== */
+    .info-card {
+      background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 100%);
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    .info-card p {
+      font-size: 13px;
+      color: #5f6368;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>設定</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <!-- テーマ設定 -->
+    <div class="section">
+      <div class="section-title">
+        <span class="section-icon">🎨</span>
+        <span>テーマ</span>
+      </div>
+      <div class="setting-item">
+        <div class="setting-label">カラーテーマ</div>
+        <div class="setting-description">アプリの配色を選択できます</div>
+        <div class="theme-options">
+          <div class="theme-option active" onclick="selectTheme('default')">
+            <div class="theme-preview default"></div>
+            <div class="theme-name">デフォルト</div>
+          </div>
+          <div class="theme-option" onclick="selectTheme('dark')">
+            <div class="theme-preview dark"></div>
+            <div class="theme-name">ダーク</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- データ管理 -->
+    <div class="section">
+      <div class="section-title">
+        <span class="section-icon">💾</span>
+        <span>データ管理</span>
+      </div>
+      <div class="setting-item">
+        <div class="setting-label">データのエクスポート</div>
+        <div class="setting-description">日記データをバックアップできます</div>
+        <button type="button" class="export-btn" onclick="navigateTo('export')" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px;">
+          📦 エクスポート画面へ
+        </button>
+      </div>
+      <div class="setting-item">
+        <div class="setting-label">危険な操作</div>
+        <div class="setting-description">全てのデータが削除されます（復元不可）</div>
+        <button type="button" class="danger-btn" onclick="confirmDeleteAll()">
+          🗑️ 全データを削除
+        </button>
+      </div>
+    </div>
+
+    <!-- アプリ情報 -->
+    <div class="info-card">
+      <p>
+        <strong>連用日記 v2.0</strong><br>
+        改善版 - 2026年作成<br>
+        <br>
+        ℹ️ 設定はブラウザに保存されます。
+      </p>
+    </div>
+  </div>
+
+  <script>
+    /* ========================================
+       ページ遷移
+       ======================================== */
+    function navigateTo(page) {
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=' + page;
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    function navigateToHome() {
+      navigateTo('home');
+    }
+
+    /* ========================================
+       設定の読み込みと保存
+       ======================================== */
+
+    // ページ読み込み時に設定を復元
+    window.addEventListener('load', function() {
+      loadSettings();
+    });
+
+    /**
+     * 設定を読み込み
+     */
+    function loadSettings() {
+      try {
+        // テーマ
+        const theme = localStorage.getItem('theme') || 'default';
+        document.querySelectorAll('.theme-option').forEach(option => {
+          option.classList.remove('active');
+        });
+        document.querySelector(`.theme-option[onclick*="${theme}"]`)?.classList.add('active');
+
+        // テーマを適用
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+
+      } catch (e) {
+        console.log('設定の読み込みに失敗:', e);
+      }
+    }
+
+    /**
+     * テーマを選択
+     * @param {string} theme - テーマ名
+     */
+    function selectTheme(theme) {
+      try {
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-option').forEach(option => {
+          option.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+
+        // テーマを即座に適用
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        } else {
+          document.body.classList.remove('dark');
+        }
+      } catch (e) {
+        console.log('テーマの保存に失敗:', e);
+      }
+    }
+
+    /**
+     * 全データ削除の確認
+     */
+    function confirmDeleteAll() {
+      const confirmed = confirm(
+        '⚠️ 警告\n\n' +
+        '全ての日記データが完全に削除されます。\n' +
+        'この操作は取り消せません。\n\n' +
+        '本当に削除しますか？'
+      );
+
+      if (confirmed) {
+        const doubleConfirm = confirm(
+          '最終確認\n\n' +
+          '本当に全てのデータを削除しますか？\n' +
+          'エクスポートでバックアップを取ることをお勧めします。'
+        );
+
+        if (doubleConfirm) {
+          deleteAllData();
+        }
+      }
+    }
+
+    /**
+     * 全データを削除
+     */
+    function deleteAllData() {
+      try {
+        google.script.run
+          .withSuccessHandler(onDeleteSuccess)
+          .withFailureHandler(onDeleteError)
+          .deleteAllDiaryData();
+      } catch (e) {
+        console.error('削除エラー:', e);
+        alert('データの削除に失敗しました: ' + e.message);
+      }
+    }
+
+    /**
+     * 削除成功時の処理
+     */
+    function onDeleteSuccess() {
+      alert('✅ 全てのデータを削除しました。');
+      navigateToHome();
+    }
+
+    /**
+     * 削除エラー時の処理
+     * @param {string} error - エラーメッセージ
+     */
+    function onDeleteError(error) {
+      alert('⚠️ 削除に失敗しました: ' + error);
+      console.error('削除エラー:', error);
+    }
+  </script>
+</body>
+</html>

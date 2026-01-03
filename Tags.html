@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>タグ別表示</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .section,
+    body.dark .entry-card {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .tag-cloud-item {
+      background: #3a3a3a;
+      color: #e0e0e0;
+    }
+
+    body.dark .tag-cloud-item.active {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .loading,
+    body.dark .empty {
+      color: #b0b0b0;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       セクション
+       ======================================== */
+    .section {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #202124;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    body.dark .section-title {
+      color: #e0e0e0;
+    }
+
+    /* ========================================
+       タグクラウド
+       ======================================== */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .tag-cloud-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: #f0f0f0;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .tag-cloud-item:active {
+      transform: scale(0.95);
+    }
+
+    .tag-cloud-item.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    .tag-count {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tag-cloud-item.active .tag-count {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ========================================
+       日記エントリーカード
+       ======================================== */
+    .entries-container {
+      display: grid;
+      gap: 16px;
+    }
+
+    .entry-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .entry-card:nth-child(1) { animation-delay: 0.05s; }
+    .entry-card:nth-child(2) { animation-delay: 0.1s; }
+    .entry-card:nth-child(3) { animation-delay: 0.15s; }
+    .entry-card:nth-child(4) { animation-delay: 0.2s; }
+    .entry-card:nth-child(5) { animation-delay: 0.25s; }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    body.dark .entry-header {
+      border-bottom-color: #3a3a3a;
+    }
+
+    .entry-date {
+      font-size: 14px;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    body.dark .entry-date {
+      color: #8b9dc3;
+    }
+
+    .entry-mood {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .entry-content {
+      color: #202124;
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    body.dark .entry-content {
+      color: #e0e0e0;
+    }
+
+    .entry-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .entry-tag {
+      background: #e8f0fe;
+      color: #1967d2;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    body.dark .entry-tag {
+      background: #2c3e50;
+      color: #8b9dc3;
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .loading {
+      text-align: center;
+      padding: 80px 20px;
+      color: #5f6368;
+      font-size: 16px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #5f6368;
+      font-size: 16px;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .error {
+      text-align: center;
+      color: #d93025;
+      padding: 60px 20px;
+      font-size: 16px;
+      background: #fce8e6;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    body.dark .error {
+      background: #3a2222;
+      color: #ff6b6b;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>タグ別表示</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <div id="content" class="loading">読み込み中</div>
+  </div>
+
+  <script>
+    /* ========================================
+       グローバル変数
+       ======================================== */
+    let allEntries = [];
+    let selectedTag = null;
+
+    /* ========================================
+       テーマ適用
+       ======================================== */
+    
+    // ページ遷移
+    function navigateToHome() {
+      console.log('[NAV] Navigate to home');
+
+      const isInIframe = window.self !== window.top;
+      console.log('iframe内:', isInIframe);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      console.log('遷移先URL:', newUrl);
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {
+        console.log('テーマの読み込みに失敗:', e);
+      }
+    }
+
+    // ページ読み込み時にテーマを適用
+    applyTheme();
+
+    /* ========================================
+       初期化
+       ======================================== */
+    try {
+      google.script.run
+        .withSuccessHandler(initTags)
+        .withFailureHandler(displayError)
+        .getAllDiaryEntries();
+    } catch (e) {
+      console.error('データ取得エラー:', e);
+      displayError('データの取得に失敗しました');
+    }
+
+    /**
+     * タグ表示を初期化
+     * @param {Array} entries - 全日記エントリー
+     */
+    function initTags(entries) {
+      allEntries = entries || [];
+      renderTagCloud();
+    }
+
+    /**
+     * タグクラウドを描画
+     */
+    function renderTagCloud() {
+      const content = document.getElementById('content');
+
+      // タグを集計
+      const tagCounts = {};
+      allEntries.forEach(entry => {
+        if (entry.tags) {
+          const tags = entry.tags.split(/[,、]/).map(t => t.trim()).filter(t => t);
+          tags.forEach(tag => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          });
+        }
+      });
+
+      // タグを使用回数順にソート
+      const sortedTags = Object.entries(tagCounts)
+        .sort((a, b) => b[1] - a[1]);
+
+      if (sortedTags.length === 0) {
+        content.className = '';
+        content.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">🏷️</div>
+            <p>タグが設定された日記がありません</p>
+            <p style="margin-top: 8px; font-size: 14px; color: #9aa0a6;">日記を書く際にタグを追加してみましょう</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="section">
+          <div class="section-title">
+            <span>🏷️</span>
+            <span>タグ一覧</span>
+          </div>
+          <div class="tag-cloud">
+      `;
+
+      sortedTags.forEach(([tag, count]) => {
+        const activeClass = selectedTag === tag ? 'active' : '';
+        html += `
+          <div class="tag-cloud-item ${activeClass}" onclick="selectTag('${escapeHtml(tag)}')">
+            <span>${escapeHtml(tag)}</span>
+            <span class="tag-count">${count}</span>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      // 選択されたタグの日記を表示
+      if (selectedTag) {
+        const filteredEntries = allEntries.filter(entry => {
+          if (!entry.tags) return false;
+          const tags = entry.tags.split(/[,、]/).map(t => t.trim());
+          return tags.includes(selectedTag);
+        });
+
+        html += `
+          <div class="section">
+            <div class="section-title">
+              <span>📝</span>
+              <span>"${escapeHtml(selectedTag)}" の日記（${filteredEntries.length}件）</span>
+            </div>
+            <div class="entries-container">
+        `;
+
+        if (filteredEntries.length > 0) {
+          filteredEntries.forEach(entry => {
+            const tags = entry.tags ? entry.tags.split(/[,、]/).map(t => t.trim()).filter(t => t) : [];
+            const moodEmoji = entry.mood ? entry.mood.split(' ')[0] : '';
+
+            html += `
+              <div class="entry-card">
+                <div class="entry-header">
+                  <div class="entry-date">${escapeHtml(entry.date || '')}</div>
+                  <div class="entry-mood">${moodEmoji}</div>
+                </div>
+                <div class="entry-content">${escapeHtml(entry.content || '')}</div>
+            `;
+
+            if (tags.length > 0) {
+              html += '<div class="entry-tags">';
+              tags.forEach(tag => {
+                html += `<span class="entry-tag">#${escapeHtml(tag)}</span>`;
+              });
+              html += '</div>';
+            }
+
+            html += '</div>';
+          });
+        } else {
+          html += `
+            <div class="empty">
+              <p>このタグの日記が見つかりません</p>
+            </div>
+          `;
+        }
+
+        html += `
+            </div>
+          </div>
+        `;
+      }
+
+      content.className = '';
+      content.innerHTML = html;
+    }
+
+    /**
+     * タグを選択
+     * @param {string} tag - 選択されたタグ
+     */
+    function selectTag(tag) {
+      if (selectedTag === tag) {
+        selectedTag = null;
+      } else {
+        selectedTag = tag;
+      }
+      renderTagCloud();
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      const content = document.getElementById('content');
+      content.className = '';
+      content.innerHTML = `
+        <div class="error">
+          ⚠️ エラーが発生しました<br>
+          <br>
+          ${escapeHtml(String(error))}<br>
+          <br>
+          ページを再読み込みしてください
+        </div>
+      `;
+      console.error('エラー:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

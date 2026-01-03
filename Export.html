@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>エクスポート</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       説明カード
+       ======================================== */
+    .info-card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeIn 0.5s ease;
+    }
+
+    .info-card h2 {
+      font-size: 18px;
+      color: #202124;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .info-card p {
+      color: #5f6368;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* ========================================
+       エクスポートオプション
+       ======================================== */
+    .export-options {
+      display: grid;
+      gap: 14px;
+    }
+
+    .export-card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .export-card:nth-child(1) { animation-delay: 0.1s; }
+    .export-card:nth-child(2) { animation-delay: 0.15s; }
+    .export-card:nth-child(3) { animation-delay: 0.2s; }
+
+    .export-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .export-icon {
+      font-size: 40px;
+      line-height: 1;
+    }
+
+    .export-info h3 {
+      font-size: 18px;
+      color: #202124;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .export-info p {
+      font-size: 13px;
+      color: #5f6368;
+    }
+
+    .export-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .export-btn:active {
+      transform: scale(0.98);
+    }
+
+    .export-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ========================================
+       統計情報
+       ======================================== */
+    .stats-info {
+      background: linear-gradient(135deg, #e8f0fe 0%, #f3e8ff 100%);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+
+    .stat-item {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #5f6368;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .loading {
+      text-align: center;
+      padding: 80px 20px;
+      color: #5f6368;
+      font-size: 16px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .error {
+      text-align: center;
+      color: #d93025;
+      padding: 60px 20px;
+      font-size: 16px;
+      background: #fce8e6;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    .success {
+      background: #4caf50;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin: 16px 0;
+      text-align: center;
+      font-weight: 600;
+      display: none;
+      animation: slideDown 0.4s ease;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>エクスポート</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <div id="content" class="loading">読み込み中</div>
+  </div>
+
+  <script>
+    /* ========================================
+       ページ遷移
+       ======================================== */
+    function navigateToHome() {
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    /* ========================================
+       グローバル変数
+       ======================================== */
+    let allEntries = [];
+
+    /* ========================================
+       初期化
+       ======================================== */
+    try {
+      google.script.run
+        .withSuccessHandler(initExport)
+        .withFailureHandler(displayError)
+        .getAllDiaryEntries();
+    } catch (e) {
+      console.error('データ取得エラー:', e);
+      displayError('データの取得に失敗しました');
+    }
+
+    /**
+     * エクスポート画面を初期化
+     * @param {Array} entries - 全日記エントリー
+     */
+    function initExport(entries) {
+      allEntries = entries || [];
+      renderExportOptions();
+    }
+
+    /**
+     * エクスポートオプションを描画
+     */
+    function renderExportOptions() {
+      const content = document.getElementById('content');
+
+      const totalEntries = allEntries.length;
+      let totalChars = 0;
+      allEntries.forEach(entry => {
+        totalChars += (entry.content || '').length;
+      });
+
+      const html = `
+        <div class="info-card">
+          <h2>📦 データをエクスポート</h2>
+          <p>日記データを様々な形式でダウンロードできます。バックアップや他のアプリでの利用にお使いください。</p>
+        </div>
+
+        <div class="success" id="successMessage"></div>
+
+        <div class="export-options">
+          <div class="export-card">
+            <div class="export-header">
+              <div class="export-icon">📄</div>
+              <div class="export-info">
+                <h3>JSON形式</h3>
+                <p>プログラムで処理しやすい形式</p>
+              </div>
+            </div>
+            <button type="button" class="export-btn" onclick="exportJSON()">
+              📥 JSONでダウンロード
+            </button>
+          </div>
+
+          <div class="export-card">
+            <div class="export-header">
+              <div class="export-icon">📊</div>
+              <div class="export-info">
+                <h3>CSV形式</h3>
+                <p>Excelや表計算ソフトで開ける形式</p>
+              </div>
+            </div>
+            <button type="button" class="export-btn" onclick="exportCSV()">
+              📥 CSVでダウンロード
+            </button>
+          </div>
+
+          <div class="export-card">
+            <div class="export-header">
+              <div class="export-icon">📝</div>
+              <div class="export-info">
+                <h3>Markdown形式</h3>
+                <p>読みやすいテキスト形式</p>
+              </div>
+            </div>
+            <button type="button" class="export-btn" onclick="exportMarkdown()">
+              📥 Markdownでダウンロード
+            </button>
+          </div>
+        </div>
+
+        <div class="stats-info">
+          <div class="stat-item">
+            <div class="stat-value">${totalEntries}</div>
+            <div class="stat-label">総日記数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">${totalChars.toLocaleString()}</div>
+            <div class="stat-label">総文字数</div>
+          </div>
+        </div>
+      `;
+
+      content.className = '';
+      content.innerHTML = html;
+    }
+
+    /**
+     * JSON形式でエクスポート
+     */
+    function exportJSON() {
+      try {
+        const data = JSON.stringify(allEntries, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        downloadFile(blob, 'diary_export.json');
+        showSuccess('JSON形式でダウンロードしました');
+      } catch (e) {
+        console.error('JSONエクスポートエラー:', e);
+        alert('エクスポートに失敗しました: ' + e.message);
+      }
+    }
+
+    /**
+     * CSV形式でエクスポート
+     */
+    function exportCSV() {
+      try {
+        let csv = '\uFEFF'; // BOM for Excel
+        csv += '日付,年,月日,曜日,内容,気分,タグ\n';
+
+        allEntries.forEach(entry => {
+          const row = [
+            entry.date || '',
+            entry.year || '',
+            entry.monthDay || '',
+            entry.dayOfWeek || '',
+            `"${(entry.content || '').replace(/"/g, '""')}"`,
+            entry.mood || '',
+            entry.tags || ''
+          ].join(',');
+          csv += row + '\n';
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        downloadFile(blob, 'diary_export.csv');
+        showSuccess('CSV形式でダウンロードしました');
+      } catch (e) {
+        console.error('CSVエクスポートエラー:', e);
+        alert('エクスポートに失敗しました: ' + e.message);
+      }
+    }
+
+    /**
+     * Markdown形式でエクスポート
+     */
+    function exportMarkdown() {
+      try {
+        let markdown = '# 連用日記エクスポート\n\n';
+        markdown += `エクスポート日時: ${new Date().toLocaleString('ja-JP')}\n\n`;
+        markdown += `---\n\n`;
+
+        allEntries.forEach(entry => {
+          markdown += `## ${entry.date || ''} (${entry.dayOfWeek || ''})\n\n`;
+
+          if (entry.mood) {
+            markdown += `**気分**: ${entry.mood}\n\n`;
+          }
+
+          if (entry.tags) {
+            markdown += `**タグ**: ${entry.tags}\n\n`;
+          }
+
+          markdown += `${entry.content || ''}\n\n`;
+          markdown += `---\n\n`;
+        });
+
+        const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
+        downloadFile(blob, 'diary_export.md');
+        showSuccess('Markdown形式でダウンロードしました');
+      } catch (e) {
+        console.error('Markdownエクスポートエラー:', e);
+        alert('エクスポートに失敗しました: ' + e.message);
+      }
+    }
+
+    /**
+     * ファイルをダウンロード
+     * @param {Blob} blob - ファイルデータ
+     * @param {string} filename - ファイル名
+     */
+    function downloadFile(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /**
+     * 成功メッセージを表示
+     * @param {string} message - メッセージ
+     */
+    function showSuccess(message) {
+      const successDiv = document.getElementById('successMessage');
+      successDiv.textContent = '✅ ' + message;
+      successDiv.style.display = 'block';
+
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 3000);
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      const content = document.getElementById('content');
+      content.className = '';
+      content.innerHTML = `
+        <div class="error">
+          ⚠️ エラーが発生しました<br>
+          <br>
+          ${escapeHtml(String(error))}<br>
+          <br>
+          ページを再読み込みしてください
+        </div>
+      `;
+      console.error('エラー:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

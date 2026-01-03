@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>統計</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .stats-grid,
+    body.dark .stat-card,
+    body.dark .mood-section {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .stat-value {
+      color: #8b9dc3;
+    }
+
+    body.dark .stat-label,
+    body.dark .section-title {
+      color: #b0b0b0;
+    }
+
+    body.dark .mood-item-label {
+      color: #e0e0e0;
+    }
+
+    body.dark .mood-bar {
+      background: #3a3a3a;
+    }
+
+    body.dark .mood-bar-fill {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .loading {
+      color: #b0b0b0;
+    }
+
+    body.dark .error {
+      background: #3a2222;
+      color: #ff6b6b;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       統計カードグリッド
+       ======================================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 28px 18px;
+      border-radius: 18px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.15s; }
+    .stat-card:nth-child(3) { animation-delay: 0.2s; }
+    .stat-card:nth-child(4) { animation-delay: 0.25s; }
+    .stat-card:nth-child(5) { animation-delay: 0.3s; }
+    .stat-card:nth-child(6) { animation-delay: 0.35s; }
+
+    .stat-emoji {
+      font-size: 48px;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #667eea;
+      margin: 12px 0;
+      line-height: 1;
+    }
+
+    .stat-label {
+      color: #5f6368;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .stat-sub {
+      color: #9aa0a6;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    /* ========================================
+       気分セクション
+       ======================================== */
+    .mood-section {
+      background: white;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .mood-section h3 {
+      margin: 0 0 24px 0;
+      font-size: 18px;
+      color: #202124;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .mood-item {
+      display: flex;
+      align-items: center;
+      margin: 18px 0;
+      gap: 14px;
+    }
+
+    .mood-emoji {
+      font-size: 40px;
+      width: 54px;
+      text-align: center;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .mood-info {
+      flex: 1;
+    }
+
+    .bar-container {
+      background: #f0f0f0;
+      height: 32px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .bar {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 12px;
+      color: white;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .mood-text {
+      font-size: 13px;
+      color: #5f6368;
+      font-weight: 500;
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .loading {
+      text-align: center;
+      color: #5f6368;
+      padding: 80px 20px;
+      font-size: 16px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #5f6368;
+      padding: 80px 20px;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .error {
+      text-align: center;
+      color: #d93025;
+      padding: 60px 20px;
+      font-size: 16px;
+      background: #fce8e6;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>統計</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container" id="content">
+    <div class="loading">読み込み中</div>
+  </div>
+
+  <script>
+    /* ========================================
+       テーマ適用
+       ======================================== */
+    
+    // ページ遷移
+    function navigateToHome() {
+      console.log('[NAV] Navigate to home');
+
+      const isInIframe = window.self !== window.top;
+      console.log('iframe内:', isInIframe);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      console.log('遷移先URL:', newUrl);
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {
+        console.log('テーマの読み込みに失敗:', e);
+      }
+    }
+    applyTheme();
+
+    /* ========================================
+       データ取得と表示
+       ======================================== */
+
+    // データ取得開始
+    try {
+      google.script.run
+        .withSuccessHandler(displayStats)
+        .withFailureHandler(displayError)
+        .getStatistics();
+    } catch (e) {
+      console.error('データ取得エラー:', e);
+      displayError('データの取得に失敗しました');
+    }
+
+    /**
+     * 統計データを表示
+     * @param {Object} stats - 統計データ
+     */
+    function displayStats(stats) {
+      const content = document.getElementById('content');
+
+      // データがない場合
+      if (!stats) {
+        content.innerHTML = `
+          <div class="no-data">
+            📊 まだ日記が書かれていません<br>
+            <br>
+            日記を書くと、ここに統計が表示されます
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        // 気分チャート生成
+        let moodChart = '';
+        const moodEntries = Object.entries(stats.moodCounts);
+
+        // 気分を回数でソート
+        moodEntries.sort((a, b) => b[1] - a[1]);
+
+        moodEntries.forEach(([mood, count]) => {
+          const percentage = ((count / stats.totalEntries) * 100).toFixed(1);
+
+          // 気分から絵文字を抽出
+          let moodEmoji = '❓';
+          if (mood.includes('😄')) moodEmoji = '😄';
+          else if (mood.includes('🙂')) moodEmoji = '🙂';
+          else if (mood.includes('😐')) moodEmoji = '😐';
+          else if (mood.includes('😔')) moodEmoji = '😔';
+          else if (mood.includes('😢')) moodEmoji = '😢';
+
+          moodChart += `
+            <div class="mood-item">
+              <div class="mood-emoji">${moodEmoji}</div>
+              <div class="mood-info">
+                <div class="bar-container">
+                  <div class="bar" style="width: ${percentage}%">${percentage}%</div>
+                </div>
+                <div class="mood-text">${count}回</div>
+              </div>
+            </div>
+          `;
+        });
+
+        // HTML生成
+        const html = `
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-emoji">📝</div>
+              <div class="stat-value">${stats.totalEntries}</div>
+              <div class="stat-label">総日記数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-emoji">📈</div>
+              <div class="stat-value">${stats.writeRate}%</div>
+              <div class="stat-label">記録率</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-emoji">🔥</div>
+              <div class="stat-value">${stats.currentStreak}</div>
+              <div class="stat-label">連続記録</div>
+              <div class="stat-sub">現在</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-emoji">🏆</div>
+              <div class="stat-value">${stats.maxStreak}</div>
+              <div class="stat-label">最長記録</div>
+              <div class="stat-sub">日間</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-emoji">✍️</div>
+              <div class="stat-value">${stats.avgChars}</div>
+              <div class="stat-label">平均文字数</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-emoji">📅</div>
+              <div class="stat-value">${stats.daysSinceStart}</div>
+              <div class="stat-label">継続日数</div>
+            </div>
+          </div>
+          <div class="mood-section">
+            <h3>気分の記録</h3>
+            ${moodChart}
+          </div>
+        `;
+
+        content.innerHTML = html;
+
+      } catch (e) {
+        console.error('表示エラー:', e);
+        displayError('データの表示に失敗しました');
+      }
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      const content = document.getElementById('content');
+      content.innerHTML = `
+        <div class="error">
+          ⚠️ エラーが発生しました<br>
+          <br>
+          ${escapeHtml(String(error))}<br>
+          <br>
+          ページを再読み込みしてください
+        </div>
+      `;
+      console.error('エラー:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

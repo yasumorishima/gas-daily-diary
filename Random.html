@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ランダム日記</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .card {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark h2 {
+      color: #8b9dc3;
+    }
+
+    body.dark .date,
+    body.dark .content {
+      color: #e0e0e0;
+    }
+
+    body.dark .tag {
+      background: #2c3e50;
+      color: #8b9dc3;
+    }
+
+    body.dark .home-btn,
+    body.dark .retry-btn {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .no-data,
+    body.dark .loading {
+      color: #e0e0e0;
+    }
+
+    /* ========================================
+       カードスタイル
+       ======================================== */
+    .card {
+      background: white;
+      border-radius: 28px;
+      padding: 36px 28px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+      animation: fadeInScale 0.5s ease;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 26px;
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    .date {
+      text-align: center;
+      font-size: 16px;
+      color: #5f6368;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .mood {
+      text-align: center;
+      font-size: 64px;
+      margin: 28px 0;
+      line-height: 1;
+      animation: bounce 0.6s ease;
+    }
+
+    .content {
+      padding: 28px;
+      background: #f8f9fa;
+      border-radius: 18px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 15px;
+      color: #202124;
+      min-height: 160px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* ========================================
+       タグ
+       ======================================== */
+    .tags {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .tag {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 18px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       ボタン
+       ======================================== */
+    .buttons {
+      display: flex;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #5f6368;
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .loading {
+      text-align: center;
+      color: white;
+      font-size: 20px;
+      padding: 60px 20px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .no-data {
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      padding: 60px 20px;
+      line-height: 1.8;
+    }
+
+    .error {
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      padding: 60px 20px;
+      line-height: 1.8;
+      background: rgba(217, 48, 37, 0.2);
+      border-radius: 16px;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ローディング表示
+       ======================================== -->
+  <div id="loading" class="loading">読み込み中</div>
+
+  <!-- ========================================
+       カード（初期非表示）
+       ======================================== -->
+  <div id="card" class="card" style="display:none;">
+    <h2>🎲 思い出の1ページ</h2>
+    <div class="date" id="date"></div>
+    <div class="mood" id="mood"></div>
+    <div class="content" id="content"></div>
+    <div class="tags" id="tags"></div>
+    <div class="buttons">
+      <button type="button" class="btn btn-secondary" onclick="navigateToHome()">ホームへ</button>
+      <button type="button" class="btn btn-primary" onclick="navigateTo('random')">もう一度</button>
+    </div>
+  </div>
+
+  <!-- ========================================
+       データなし表示（初期非表示）
+       ======================================== -->
+  <div id="noData" class="no-data" style="display:none;">
+    📖 まだ日記が書かれていません<br>
+    <br>
+    最初の1ページを書いてみましょう！<br>
+    <br>
+    <button type="button" class="btn btn-primary" onclick="navigateTo('write')">日記を書く</button>
+  </div>
+
+  <!-- ========================================
+       エラー表示（初期非表示）
+       ======================================== -->
+  <div id="error" class="error" style="display:none;"></div>
+
+  <script>
+    /* ========================================
+       テーマ適用
+       ======================================== */
+    
+    // ページ遷移
+    function navigateTo(page) {
+      const isInIframe = window.self !== window.top;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=' + page;
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+    function navigateToHome() {
+      navigateTo('home');
+    }
+
+
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {
+        console.log('テーマの読み込みに失敗:', e);
+      }
+    }
+    applyTheme();
+
+    /* ========================================
+       データ取得と表示
+       ======================================== */
+
+    // データ取得開始
+    try {
+      google.script.run
+        .withSuccessHandler(displayEntry)
+        .withFailureHandler(displayError)
+        .getRandomDiary();
+    } catch (e) {
+      console.error('データ取得エラー:', e);
+      displayError('データの取得に失敗しました');
+    }
+
+    /**
+     * エントリーを表示
+     * @param {Object} entry - 日記エントリー
+     */
+    function displayEntry(entry) {
+      // ローディングを非表示
+      document.getElementById('loading').style.display = 'none';
+
+      // データがない場合
+      if (!entry) {
+        document.getElementById('noData').style.display = 'block';
+        return;
+      }
+
+      try {
+        // 日付を表示
+        document.getElementById('date').textContent =
+          escapeHtml(entry.date) + ' (' + escapeHtml(entry.dayOfWeek) + ')';
+
+        // 気分を表示
+        if (entry.mood) {
+          const moodEmoji = entry.mood.split(' ')[0];
+          document.getElementById('mood').textContent = moodEmoji;
+        } else {
+          document.getElementById('mood').style.display = 'none';
+        }
+
+        // 内容を表示
+        document.getElementById('content').textContent = entry.content;
+
+        // タグを表示
+        if (entry.tags) {
+          const tagList = entry.tags.split(',').map(t => t.trim()).filter(t => t);
+          if (tagList.length > 0) {
+            const tagsHtml = tagList
+              .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
+              .join('');
+            document.getElementById('tags').innerHTML = tagsHtml;
+          } else {
+            document.getElementById('tags').style.display = 'none';
+          }
+        } else {
+          document.getElementById('tags').style.display = 'none';
+        }
+
+        // カードを表示
+        document.getElementById('card').style.display = 'block';
+
+      } catch (e) {
+        console.error('表示エラー:', e);
+        displayError('データの表示に失敗しました');
+      }
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      document.getElementById('loading').style.display = 'none';
+      const errorDiv = document.getElementById('error');
+      errorDiv.innerHTML = `
+        ⚠️ エラーが発生しました<br>
+        <br>
+        ${escapeHtml(String(error))}<br>
+        <br>
+        <button type="button" class="btn btn-primary" onclick="navigateTo('random')">再読み込み</button>
+      `;
+      errorDiv.style.display = 'block';
+      console.error('エラー:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

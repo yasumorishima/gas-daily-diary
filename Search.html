@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>検索</title>
+
+  <style>
+    /* ========================================
+       リセットCSS
+       ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ========================================
+       基本スタイル
+       ======================================== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========================================
+       ダークモード
+       ======================================== */
+    body.dark {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+
+    body.dark .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    }
+
+    body.dark .search-box {
+      background: #2d2d2d;
+    }
+
+    body.dark .search-input {
+      background: #3a3a3a;
+      border-color: #4a4a4a;
+      color: #e0e0e0;
+    }
+
+    body.dark .search-input::placeholder {
+      color: #7a7a7a;
+    }
+
+    body.dark .result-count {
+      color: #b0b0b0;
+    }
+
+    body.dark .result-item {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark .result-date {
+      color: #8b9dc3;
+    }
+
+    body.dark .result-content {
+      color: #e0e0e0;
+    }
+
+    body.dark .result-content .highlight {
+      background: #4a4a2a;
+      color: #ffd700;
+    }
+
+    body.dark .result-tag {
+      background: #2c3e50;
+      color: #8b9dc3;
+    }
+
+    body.dark .empty {
+      color: #b0b0b0;
+    }
+
+    /* ========================================
+       ヘッダー
+       ======================================== */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 16px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       メインコンテナ
+       ======================================== */
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       検索ボックス
+       ======================================== */
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    input {
+      flex: 1;
+      padding: 16px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 14px;
+      font-size: 16px;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-btn {
+      padding: 16px 28px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .search-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ========================================
+       検索結果
+       ======================================== */
+    .result-count {
+      text-align: center;
+      color: #5f6368;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .result-item {
+      margin: 16px 0;
+      padding: 24px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.4s ease;
+      animation-fill-mode: both;
+    }
+
+    .result-item:nth-child(1) { animation-delay: 0.1s; }
+    .result-item:nth-child(2) { animation-delay: 0.15s; }
+    .result-item:nth-child(3) { animation-delay: 0.2s; }
+    .result-item:nth-child(4) { animation-delay: 0.25s; }
+    .result-item:nth-child(5) { animation-delay: 0.3s; }
+
+    .result-date {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .result-mood {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .result-content {
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #202124;
+      font-size: 15px;
+    }
+
+    /* ハイライト */
+    mark {
+      background: linear-gradient(transparent 50%, #fff59d 50%);
+      font-weight: 600;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    /* ========================================
+       メッセージ表示
+       ======================================== */
+    .no-results {
+      text-align: center;
+      color: #5f6368;
+      padding: 80px 20px;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .loading {
+      text-align: center;
+      color: #5f6368;
+      padding: 60px 20px;
+      font-size: 16px;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    .error {
+      text-align: center;
+      color: #d93025;
+      padding: 60px 20px;
+      font-size: 16px;
+      background: #fce8e6;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    /* ========================================
+       アニメーション
+       ======================================== */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       ヘッダー
+       ======================================== -->
+  <div class="header">
+    <button type="button" class="back-btn" onclick="navigateToHome()">←</button>
+    <h1>検索</h1>
+  </div>
+
+  <!-- ========================================
+       メインコンテナ
+       ======================================== -->
+  <div class="container">
+    <!-- 検索ボックス -->
+    <div class="search-box">
+      <input
+        type="text"
+        id="searchQuery"
+        placeholder="キーワードを入力..."
+        onkeypress="if(event.key==='Enter') searchDiary()"
+        autocomplete="off"
+      >
+      <button type="button" class="search-btn" onclick="searchDiary()">🔍 検索</button>
+    </div>
+
+    <!-- 結果表示エリア -->
+    <div id="results"></div>
+  </div>
+
+  <script>
+    /* ========================================
+       テーマ適用
+       ======================================== */
+    
+    // ページ遷移
+    function navigateToHome() {
+      console.log('[NAV] Navigate to home');
+
+      const isInIframe = window.self !== window.top;
+      console.log('iframe内:', isInIframe);
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const newUrl = baseUrl + '?page=home';
+
+      console.log('遷移先URL:', newUrl);
+
+      if (isInIframe) {
+        window.top.location.href = newUrl;
+      } else {
+        window.location.href = newUrl;
+      }
+    }
+
+
+    function applyTheme() {
+      try {
+        const theme = localStorage.getItem('theme') || 'default';
+        if (theme === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {
+        console.log('テーマの読み込みに失敗:', e);
+      }
+    }
+    applyTheme();
+
+    /* ========================================
+       検索機能
+       ======================================== */
+
+    // 入力欄にフォーカス
+    window.addEventListener('load', function() {
+      document.getElementById('searchQuery').focus();
+    });
+
+    /**
+     * 検索を実行
+     */
+    function searchDiary() {
+      const query = document.getElementById('searchQuery').value;
+
+      // 入力チェック
+      if (!query.trim()) {
+        alert('キーワードを入力してください');
+        return;
+      }
+
+      // ローディング表示
+      document.getElementById('results').innerHTML =
+        '<div class="loading">検索中</div>';
+
+      // 検索実行
+      try {
+        google.script.run
+          .withSuccessHandler(displayResults)
+          .withFailureHandler(displayError)
+          .searchDiary(query);
+      } catch (e) {
+        console.error('検索エラー:', e);
+        displayError('検索に失敗しました');
+      }
+    }
+
+    /**
+     * 検索結果を表示
+     * @param {Array} results - 検索結果の配列
+     */
+    function displayResults(results) {
+      const resultsDiv = document.getElementById('results');
+
+      // 結果がない場合
+      if (!results || results.length === 0) {
+        resultsDiv.innerHTML = `
+          <div class="no-results">
+            🔍 該当する日記が見つかりませんでした<br>
+            <br>
+            別のキーワードで試してみてください
+          </div>
+        `;
+        return;
+      }
+
+      // 結果カウント表示
+      let html = `<div class="result-count">${results.length}件見つかりました</div>`;
+
+      // 各結果を表示
+      results.forEach((result, index) => {
+        const moodEmoji = result.mood || '';
+
+        html += `
+          <div class="result-item" style="animation-delay: ${0.1 + index * 0.05}s">
+            <div class="result-date">
+              <span>${escapeHtml(result.date)}</span>
+              ${moodEmoji ? `<span class="result-mood">${moodEmoji}</span>` : ''}
+            </div>
+            <div class="result-content">${result.highlightedContent}</div>
+          </div>
+        `;
+      });
+
+      resultsDiv.innerHTML = html;
+    }
+
+    /**
+     * エラーを表示
+     * @param {string} error - エラーメッセージ
+     */
+    function displayError(error) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = `
+        <div class="error">
+          ⚠️ エラーが発生しました<br>
+          <br>
+          ${escapeHtml(String(error))}<br>
+          <br>
+          もう一度お試しください
+        </div>
+      `;
+      console.error('検索エラー:', error);
+    }
+
+    /**
+     * HTMLエスケープ（XSS対策）
+     * @param {string} text - エスケープする文字列
+     * @returns {string} エスケープ済み文字列
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
