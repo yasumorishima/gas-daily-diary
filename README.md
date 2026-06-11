@@ -128,6 +128,13 @@ clasp open
 - Firefox
 - Edge
 
+## 🔗 Related Projects
+
+| Version | Platform | Link |
+|---------|----------|------|
+| **Mobile App** | Flutter (Android) | [diary-app-flutter](https://github.com/yasumorishima/diary-app-flutter) / [Google Play](https://play.google.com/store/apps/details?id=com.diary.daily) |
+| **Web App** | Google Apps Script | This repository |
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details
