@@ -122,9 +122,9 @@ function createErrorPage(title, message) {
     </head>
     <body>
       <div class="error-container">
-        <h1>⚠️ ${title}</h1>
+        <h1>⚠️ ${escapeHtml(String(title))}</h1>
         <p>エラーが発生しました。以下の情報を確認してください：</p>
-        <div class="error-message">${message}</div>
+        <div class="error-message">${escapeHtml(String(message))}</div>
         <a href="?page=home" class="back-btn">← ホームに戻る</a>
       </div>
     </body>
@@ -339,7 +339,6 @@ function getPastToday() {
     Logger.log('getPastToday: now = ' + now);
 
     const result = getPastEntriesForDate(now);
-    Logger.log('getPastToday: getPastEntriesForDate戻り値 = ' + JSON.stringify(result));
     Logger.log('getPastToday: 戻り値の件数 = ' + result.length);
     Logger.log('getPastToday: returnします');
     return result;
@@ -406,14 +405,10 @@ function getPastEntriesForDate(targetDate) {
     }
 
     Logger.log('getPastEntriesForDate: 見つかった件数 = ' + pastEntries.length);
-    if (pastEntries.length > 0) {
-      Logger.log('最初のエントリー = ' + JSON.stringify(pastEntries[0]));
-    }
 
     // 返す前の最終チェック
     const result = pastEntries.reverse(); // 新しい順に
     Logger.log('getPastEntriesForDate: return直前のresult.length = ' + result.length);
-    Logger.log('getPastEntriesForDate: return直前のJSON = ' + JSON.stringify(result));
     Logger.log('getPastEntriesForDate: 正常終了、returnします');
     return result;
 
@@ -510,7 +505,7 @@ function searchDiary(query) {
         // ハイライト処理（XSS対策）
         const escapedQuery = escapeHtml(query);
         const escapedContent = escapeHtml(content);
-        const regex = new RegExp('(' + escapedQuery + ')', 'gi');
+        const regex = new RegExp('(' + escapeRegex(escapedQuery) + ')', 'gi');
         const highlightedContent = escapedContent.replace(regex, '<mark>$1</mark>');
 
         results.push({
@@ -648,6 +643,10 @@ function formatDateValue(date) {
 }
 
 // HTMLエスケープ（XSS対策）
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function escapeHtml(text) {
   return text
     .replace(/&/g, '&amp;')
@@ -750,9 +749,6 @@ function getAllDiaryEntries() {
     }
 
     Logger.log('getAllDiaryEntries: 完了。件数 = ' + entries.length);
-    if (entries.length > 0) {
-      Logger.log('最初のエントリー = ' + JSON.stringify(entries[0]));
-    }
     return entries;
 
   } catch (e) {
