@@ -456,10 +456,13 @@
           <div class="tag-cloud">
       `;
 
-      sortedTags.forEach(([tag, count]) => {
+      // onclick にタグ文字列を直接埋め込むと引用符(' 等)で壊れる/JSが注入されるため
+      // インデックス経由で参照する
+      currentCloudTags = sortedTags.map(([tag]) => tag);
+      sortedTags.forEach(([tag, count], index) => {
         const activeClass = selectedTag === tag ? 'active' : '';
         html += `
-          <div class="tag-cloud-item ${activeClass}" onclick="selectTag('${escapeHtml(tag)}')">
+          <div class="tag-cloud-item ${activeClass}" onclick="selectTagByIndex(${index})">
             <span>${escapeHtml(tag)}</span>
             <span class="tag-count">${count}</span>
           </div>
@@ -534,6 +537,12 @@
      * タグを選択
      * @param {string} tag - 選択されたタグ
      */
+    let currentCloudTags = [];
+
+    function selectTagByIndex(index) {
+      selectTag(currentCloudTags[index]);
+    }
+
     function selectTag(tag) {
       if (selectedTag === tag) {
         selectedTag = null;
