@@ -256,6 +256,13 @@ function getEntryByDate(targetDate) {
 
 // 日記を保存
 function saveDiary(content, mood, tags, targetDate) {
+  // 二重タップ/複数タブの同時保存で同一日付が二重追加されるのを防ぐ
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (e) {
+    return {success: false, message: '他の保存処理が実行中です。少し待ってから再度お試しください'};
+  }
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let sheet = ss.getSheetByName('日記');
@@ -316,6 +323,8 @@ function saveDiary(content, mood, tags, targetDate) {
   } catch (e) {
     Logger.log('saveDiary エラー: ' + e.toString());
     return {success: false, message: 'エラーが発生しました: ' + e.toString()};
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -558,44 +567,48 @@ function getStatistics() {
     const daysSinceStart = Math.floor((lastDate - firstDate) / (1000 * 60 * 60 * 24)) + 1;
     const writeRate = ((totalEntries / daysSinceStart) * 100).toFixed(1);
 
-    // 連続記録の計算
-    let currentStreak = 0;
-    let maxStreak = 0;
-    let tempStreak = 1;
-
+    // 連続記録の計算（dataRows は日付降順ソート済み前提）
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-    for (let i = 0; i < dataRows.length; i++) {
-      const entryDate = new Date(dataRows[i][0]);
-      entryDate.setHours(0, 0, 0, 0);
-
-      // 現在の連続記録
-      if (i === 0) {
-        const diffDays = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
-        if (diffDays === 0) {
-          currentStreak = 1;
+    // 現在の連続記録: 最新エントリが今日または昨日なら継続中とみなし、
+    // そこから日付が1日ずつ連続する限りさかのぼって数える
+    let currentStreak = 0;
+    if (dataRows.length > 0) {
+      const latest = new Date(dataRows[0][0]);
+      latest.setHours(0, 0, 0, 0);
+      const gapFromToday = Math.floor((today - latest) / MS_PER_DAY);
+      if (gapFromToday <= 1) {
+        currentStreak = 1;
+        for (let i = 0; i < dataRows.length - 1; i++) {
+          const d1 = new Date(dataRows[i][0]);
+          const d2 = new Date(dataRows[i + 1][0]);
+          d1.setHours(0, 0, 0, 0);
+          d2.setHours(0, 0, 0, 0);
+          if (Math.floor((d1 - d2) / MS_PER_DAY) === 1) {
+            currentStreak++;
+          } else {
+            break;
+          }
         }
       }
+    }
 
-      // 連続記録の計算
-      if (i < dataRows.length - 1) {
-        const date1 = new Date(dataRows[i][0]);
-        const date2 = new Date(dataRows[i + 1][0]);
-        date1.setHours(0, 0, 0, 0);
-        date2.setHours(0, 0, 0, 0);
+    // 最長連続記録
+    let maxStreak = 0;
+    let tempStreak = 1;
+    for (let i = 0; i < dataRows.length - 1; i++) {
+      const date1 = new Date(dataRows[i][0]);
+      const date2 = new Date(dataRows[i + 1][0]);
+      date1.setHours(0, 0, 0, 0);
+      date2.setHours(0, 0, 0, 0);
 
-        const diffDays = Math.floor((date1 - date2) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) {
-          tempStreak++;
-          if (i === 0 || currentStreak > 0) {
-            currentStreak = tempStreak;
-          }
-        } else {
-          maxStreak = Math.max(maxStreak, tempStreak);
-          tempStreak = 1;
-        }
+      if (Math.floor((date1 - date2) / MS_PER_DAY) === 1) {
+        tempStreak++;
+      } else {
+        maxStreak = Math.max(maxStreak, tempStreak);
+        tempStreak = 1;
       }
     }
     maxStreak = Math.max(maxStreak, tempStreak);
