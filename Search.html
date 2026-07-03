@@ -431,7 +431,7 @@
           <div class="result-item" style="animation-delay: ${0.1 + index * 0.05}s">
             <div class="result-date">
               <span>${escapeHtml(result.date)}</span>
-              ${moodEmoji ? `<span class="result-mood">${moodEmoji}</span>` : ''}
+              ${moodEmoji ? `<span class="result-mood">${escapeHtml(moodEmoji)}</span>` : ''}
             </div>
             <div class="result-content">${result.highlightedContent}</div>
           </div>
